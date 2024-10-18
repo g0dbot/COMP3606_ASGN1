@@ -1,5 +1,5 @@
 package dev.kwasi.echoservercomplete
-//lecturer app
+//lecturer app logic
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
