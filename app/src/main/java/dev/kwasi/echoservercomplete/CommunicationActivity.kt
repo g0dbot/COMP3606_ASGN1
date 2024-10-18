@@ -6,6 +6,7 @@ import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pGroup
 import android.net.wifi.p2p.WifiP2pManager
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.Toast
@@ -51,26 +52,14 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_communication)
+        setContentView(R.layout.activity_communication_lecturer)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
-        val manager: WifiP2pManager = getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
-        val channel = manager.initialize(this, mainLooper, null)
-        wfdManager = WifiDirectManager(manager, channel, this)
-
-        peerListAdapter = PeerListAdapter(this)
-        val rvPeerList: RecyclerView= findViewById(R.id.rvPeerListing)
-        rvPeerList.adapter = peerListAdapter
-        rvPeerList.layoutManager = LinearLayoutManager(this)
-
-        chatListAdapter = ChatListAdapter()
-        val rvChatList: RecyclerView = findViewById(R.id.rvChat)
-        rvChatList.adapter = chatListAdapter
-        rvChatList.layoutManager = LinearLayoutManager(this)
+        // Other lecturer-specific initialization code can go here if needed
     }
 
     //registers WifiDirectManager receiver when activity resumes.
@@ -94,6 +83,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     //inits creation of a WiFi direct group
     //req server
     fun createGroup(view: View) {
+        Log.d("CommunicationActivity", "createGroup called")
         wfdManager?.createGroup()
     }
 
@@ -113,17 +103,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             // 2) discover nearby groups
         // ELSE IF there are nearby groups found, i need to show them in a list
         // ELSE IF i have a WFD connection i need to show a chat interface where i can send/receive messages
-        val wfdAdapterErrorView:ConstraintLayout = findViewById(R.id.clWfdAdapterDisabled)
-        wfdAdapterErrorView.visibility = if (!wfdAdapterEnabled) View.VISIBLE else View.GONE
 
-        val wfdNoConnectionView:ConstraintLayout = findViewById(R.id.clNoWifiDirectConnection)
-        wfdNoConnectionView.visibility = if (wfdAdapterEnabled && !wfdHasConnection) View.VISIBLE else View.GONE
-
-        val rvPeerList: RecyclerView= findViewById(R.id.rvPeerListing)
-        rvPeerList.visibility = if (wfdAdapterEnabled && !wfdHasConnection && hasDevices) View.VISIBLE else View.GONE
-
-        val wfdConnectedView:ConstraintLayout = findViewById(R.id.clHasConnection)
-        wfdConnectedView.visibility = if(wfdHasConnection)View.VISIBLE else View.GONE
     }
 
     //sends message to the connected client

@@ -14,6 +14,7 @@ import android.net.wifi.p2p.WifiP2pManager.ActionListener
 import android.net.wifi.p2p.WifiP2pManager.P2pStateListener
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 
 /// This [WifiDirectManager] class is a [BroadcastReceiver] that listens for events fired from the
 /// operating system and relays the relevant information using the [WiFiDirectInterface] to the
@@ -91,6 +92,7 @@ class WifiDirectManager(
     //req client server
     @SuppressLint("MissingPermission")
     fun connectToPeer(peer: WifiP2pDevice) {
+        Toast.makeText(this, "Start Class button clicked", Toast.LENGTH_SHORT).show()
         val config = WifiP2pConfig()
         config.deviceAddress = peer.deviceAddress
         manager.connect(channel, config, object : ActionListener {
