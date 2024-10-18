@@ -137,6 +137,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:layout_marginTop="16dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
@@ -149,15 +150,14 @@
                 android:minLines="3"
                 android:maxLines="5"
                 android:hint="Enter message..."
-                android:layout_height="wrap_content"
-                />
+                android:layout_height="wrap_content" />
 
             <Button
-                android:layout_width="0dp"
-                android:layout_weight="0.4"
+                android:id="@+id/btnSendMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="Send"
-                android:onClick="sendMessage"
-                android:layout_height="wrap_content"/>
+                android:onClick="sendMessage"/>
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

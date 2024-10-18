@@ -37,7 +37,7 @@ class Encryption {
     }
 
     //encrypt data
-    private fun encryptMessage(plaintext: String, aesKey: SecretKey, aesIv: IvParameterSpec): String {
+    fun encryptMessage(plaintext: String, aesKey: SecretKey, aesIv: IvParameterSpec): String {
         val plainTextByteArr = plaintext.toByteArray()
 
         val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
@@ -95,5 +95,12 @@ class Encryption {
 
         // Lecturer verifies the student's response
         return verifyResponse(encryptedResponse, randomNumber, studentID)
+    }
+
+    fun encryptMessage(plaintext: String, studentId: String): String {
+        val studentIdHash = hashStrSha256(studentId)
+        val aesKey = generateAESKey(studentIdHash)
+        val aesIV = generateIV(studentIdHash)
+        return encryptMessage(plaintext, aesKey, aesIV)
     }
 }

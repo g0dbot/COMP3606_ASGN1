@@ -62,7 +62,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_communication)
+        setContentView(R.layout.activity_communication_student)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -96,6 +96,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
                 Toast.makeText(this, "Please enter a valid student ID", Toast.LENGTH_SHORT).show()
             }
         }
+
+        // Initially update UI
+        updateUI()
     }
 
     //registers WifiDirectManager receiver when activity resumes.
@@ -143,6 +146,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         if (wfdHasConnection) {
             tvClassName.text = "Class: ${wfdManager?.groupInfo?.networkName ?: "Unknown"}"
         }
+
+        // Disable search button if student ID is not valid
+        btnSearchClasses.isEnabled = isValidStudentId(etStudentId.text.toString())
     }
 
     //sends message to the connected client
@@ -155,7 +161,8 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         
         val etMessage: EditText = findViewById(R.id.etMessage)
         val etString = etMessage.text.toString()
-        val encryptedMessage = encryption.encryptMessage(etString, etStudentId.text.toString())
+        val studentId = etStudentId.text.toString()
+        val encryptedMessage = encryption.encryptMessage(etString, studentId)
         val content = ContentModel(encryptedMessage, deviceIp)
         etMessage.text.clear()
         if (server != null) {
@@ -170,15 +177,13 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     //req client server
     override fun onWiFiDirectStateChanged(isEnabled: Boolean) {
         wfdAdapterEnabled = isEnabled
-        var text = "There was a state change in the WiFi Direct. Currently it is "
-        text = if (isEnabled) {
-            "$text enabled!"
+        var text = if (isEnabled) {
+            "WiFi Direct is enabled."
         } else {
-            "$text disabled! Try turning on the WiFi adapter"
+            "WiFi Direct is disabled. Please turn on WiFi in your device settings."
         }
 
-        val toast = Toast.makeText(this, text, Toast.LENGTH_SHORT)
-        toast.show()
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
         updateUI()
     }
 
@@ -257,11 +262,10 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     }
 
     private fun searchForClasses() {
-        val studentId = etStudentId.text.toString()
-        if (isValidStudentId(studentId)) {
+        if (isAuthenticated) {
             wfdManager?.discoverPeers()
         } else {
-            Toast.makeText(this, "Please enter a valid student ID", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Please authenticate first", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -272,9 +276,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
     private fun authenticateAndSearch() {
         val studentId = etStudentId.text.toString()
-        val randomNumber = Random.nextInt().toString()
-        val encryptedResponse = encryption.studentResponse(randomNumber, studentId)
-        isAuthenticated = encryption.verifyResponse(encryptedResponse, randomNumber, studentId)
+        isAuthenticated = encryption.authenticateStudent(studentId)
         if (isAuthenticated) {
             Toast.makeText(this, "Authentication successful", Toast.LENGTH_SHORT).show()
             searchForClasses()

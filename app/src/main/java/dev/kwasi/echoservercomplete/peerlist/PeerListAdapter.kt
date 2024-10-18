@@ -9,8 +9,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import dev.kwasi.echoservercomplete.R
 
-class PeerListAdapter(private val iFaceImpl:PeerListAdapterInterface): RecyclerView.Adapter<PeerListAdapter.ViewHolder>() {
-    private val peersList:MutableList<WifiP2pDevice> = mutableListOf()
+class PeerListAdapter(private val iFaceImpl: PeerListAdapterInterface): RecyclerView.Adapter<PeerListAdapter.ViewHolder>() {
+    private val deviceList: MutableList<WifiP2pDevice> = mutableListOf()
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val titleTextView: TextView = itemView.findViewById(R.id.titleTextView)
@@ -23,24 +23,24 @@ class PeerListAdapter(private val iFaceImpl:PeerListAdapterInterface): RecyclerV
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val peer = peersList[position]
+        val device = deviceList[position]
 
-        holder.titleTextView.text = peer.deviceName
-        holder.descriptionTextView.text = peer.deviceAddress
+        holder.titleTextView.text = device.deviceName
+        holder.descriptionTextView.text = device.deviceAddress
 
         holder.itemView.setOnClickListener {
-            iFaceImpl.onPeerClicked(peer)
+            iFaceImpl.onPeerClicked(device)
         }
     }
 
     override fun getItemCount(): Int {
-        return peersList.size
+        return deviceList.size
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    fun updateList(newPeersList:Collection<WifiP2pDevice>){
-        peersList.clear()
-        peersList.addAll(newPeersList)
+    fun updateList(newDeviceList: Collection<WifiP2pDevice>) {
+        deviceList.clear()
+        deviceList.addAll(newDeviceList)
         notifyDataSetChanged()
     }
 }
