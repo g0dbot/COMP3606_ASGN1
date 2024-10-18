@@ -53,21 +53,8 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
                         if (receivedJson!= null){
                             Log.e("SERVER", "Received a message from client $it")
                             val clientContent = Gson().fromJson(receivedJson, ContentModel::class.java)
-                            val reversedContent = ContentModel(clientContent.message.reversed(), "192.168.49.1")
-
-                            val reversedContentStr = Gson().toJson(reversedContent)
-                            clientWriter.write("$reversedContentStr\n")
-                            clientWriter.flush()
-
-                            // To show the correct alignment of the items (on the server), I'd swap the IP that it came from the client
-                            // This is some OP hax that gets the job done but is not the best way of getting it done.
-                            val tmpIp = clientContent.senderIp
-                            clientContent.senderIp = reversedContent.senderIp
-                            reversedContent.senderIp = tmpIp
 
                             iFaceImpl.onContent(clientContent)
-                            iFaceImpl.onContent(reversedContent)
-
                         }
                     } catch (e: Exception){
                         Log.e("SERVER", "An error has occurred with the client $it")
@@ -78,9 +65,39 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
         }
     }
 
-    fun close(){
-        svrSocket.close()
-        clientMap.clear()
+    fun sendMessage(content: ContentModel) {
+        thread {
+            clientMap.forEach { (_, socket) ->
+                try {
+                    val writer = socket.outputStream.bufferedWriter()
+                    val contentStr = Gson().toJson(content)
+                    writer.write("$contentStr\n")
+                    writer.flush()
+                    Log.e("SERVER", "Sent message to client: ${socket.inetAddress.hostAddress}")
+                } catch (e: Exception) {
+                    Log.e("SERVER", "Error sending message to client: ${socket.inetAddress.hostAddress}")
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+
+    fun close() {
+        try {
+            clientMap.forEach { (_, socket) ->
+                socket.close()
+            }
+            clientMap.clear()
+
+            if (!svrSocket.isClosed) {
+                svrSocket.close()
+            }
+
+            Log.e("SERVER", "Server has been successfully closed.")
+        } catch (e: Exception) {
+            Log.e("SERVER", "An error occurred while closing the server.")
+            e.printStackTrace()
+        }
     }
 
 }

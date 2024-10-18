@@ -48,7 +48,15 @@ class Client (private val networkMessageInterface: NetworkMessageInterface){
 
     }
 
-    fun close(){
-        clientSocket.close()
+    fun close() {
+        try {
+            writer.close()
+            reader.close()
+            clientSocket.close()
+            Log.e("CLIENT", "Client connection closed properly")
+        } catch (e: Exception) {
+            Log.e("CLIENT", "An error occurred while closing the client")
+            e.printStackTrace()
+        }
     }
 }
