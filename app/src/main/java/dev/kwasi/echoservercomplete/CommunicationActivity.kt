@@ -1,6 +1,7 @@
 package dev.kwasi.echoservercomplete
 
 import android.content.Context
+import android.content.Intent
 import android.content.IntentFilter
 import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pGroup
@@ -12,10 +13,8 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dev.kwasi.echoservercomplete.chatlist.ChatListAdapter
 import dev.kwasi.echoservercomplete.models.ContentModel
@@ -59,7 +58,12 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             insets
         }
 
-        // Other lecturer-specific initialization code can go here if needed
+        val manager: WifiP2pManager = getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
+        val channel = manager.initialize(this, mainLooper, null)
+        wfdManager = WifiDirectManager(manager, channel, this)
+
+        //auto create the group
+        wfdManager?.createGroup()
     }
 
     //registers WifiDirectManager receiver when activity resumes.

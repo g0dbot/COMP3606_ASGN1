@@ -37,7 +37,7 @@ class Encryption {
     }
 
     //encrypt data
-    private fun encryptMessage(plaintext: String, aesKey: SecretKey, aesIv: IvParameterSpec): String {
+    fun encryptMessage(plaintext: String, aesKey: SecretKey, aesIv: IvParameterSpec): String {
         val plainTextByteArr = plaintext.toByteArray()
 
         val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
@@ -48,7 +48,7 @@ class Encryption {
     }
 
     //decrypt data
-    private fun decryptMessage(encryptedText: String, aesKey:SecretKey, aesIV: IvParameterSpec): String{
+    fun decryptMessage(encryptedText: String, aesKey:SecretKey, aesIV: IvParameterSpec): String{
         val textToDecrypt = Base64.Default.decode(encryptedText)
 
         val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")

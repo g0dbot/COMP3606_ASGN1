@@ -92,7 +92,7 @@ class WifiDirectManager(
     //req client server
     @SuppressLint("MissingPermission")
     fun connectToPeer(peer: WifiP2pDevice) {
-        Toast.makeText(this, "Start Class button clicked", Toast.LENGTH_SHORT).show()
+
         val config = WifiP2pConfig()
         config.deviceAddress = peer.deviceAddress
         manager.connect(channel, config, object : ActionListener {

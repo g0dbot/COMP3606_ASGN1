@@ -36,5 +36,17 @@
         app:layout_constraintStart_toStartOf="parent"
         tools:ignore="HardcodedText" />
 
+    <!-- Create Group button aligned to the left -->
+    <Button
+        android:id="@+id/btnCreateGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        android:onClick="redirectClassActivity"
+        android:text="Start Class"
+        app:layout_constraintTop_toBottomOf="@+id/tvTeacherLabel"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="HardcodedText" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

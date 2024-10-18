@@ -98,7 +98,7 @@ class PermissionActivity : AppCompatActivity() {
     //navigate to another page
     //req vlient server
     private fun navigateToNextPage(){
-        val i = Intent(this,CommunicationActivity::class.java)
+        val i = Intent(this,LandingLecturer::class.java)
         i.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
         startActivity(i)
     }
