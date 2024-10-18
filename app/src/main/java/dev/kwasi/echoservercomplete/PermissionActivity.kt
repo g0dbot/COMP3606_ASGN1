@@ -18,6 +18,8 @@ class PermissionActivity : AppCompatActivity() {
     /// The [requestCode] variable acts as an identifier for the app that's requesting the permissions.
     private val requestCode = 1234
 
+    //inits activity, checks for necessary permissions, and requests them if not granted
+    //req client server
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -49,6 +51,8 @@ class PermissionActivity : AppCompatActivity() {
         }
     }
 
+    //checks perms again when activity resumes and navigates to the next page if all perms granted
+    //req client server
     override fun onResume() {
         super.onResume()
         if (hasAllPermissions()){
@@ -56,6 +60,8 @@ class PermissionActivity : AppCompatActivity() {
         }
     }
 
+    //verifies all req perms are granted
+    //req client server
     private fun hasAllPermissions():Boolean{
         var perm = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
                 checkSelfPermission(Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED &&
@@ -68,6 +74,8 @@ class PermissionActivity : AppCompatActivity() {
         return perm
     }
 
+    //handles res of the perm req and navigates if permissions are granted
+    //req client server
     /// This function is called by the OS itself after the user interacts with the permissions popups.
     /// We need to iterate through each of the permissions we requested and make sure that ALL are granted.
     override fun onRequestPermissionsResult(
@@ -87,6 +95,8 @@ class PermissionActivity : AppCompatActivity() {
         }
     }
 
+    //navigate to another page
+    //req vlient server
     private fun navigateToNextPage(){
         val i = Intent(this,CommunicationActivity::class.java)
         i.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
@@ -94,6 +104,8 @@ class PermissionActivity : AppCompatActivity() {
     }
 
 
+    //app to settings
+    //req client server
     fun goToSettings(view: View) {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
         val uri = Uri.fromParts("package", packageName, null)

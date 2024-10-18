@@ -71,6 +71,8 @@ class WifiDirectManager(
         }
     }
 
+    //creates WiFi direct group with the local device as the group owner
+    //req erver
     @SuppressLint("MissingPermission")
     fun createGroup(){
         manager.createGroup(channel, object : ActionListener {
@@ -85,6 +87,8 @@ class WifiDirectManager(
         })
     }
 
+    //connects to selected peer device using its address.
+    //req client server
     @SuppressLint("MissingPermission")
     fun connectToPeer(peer: WifiP2pDevice) {
         val config = WifiP2pConfig()
@@ -101,6 +105,8 @@ class WifiDirectManager(
         })
     }
 
+    //inits discovery of nearby device
+    //req client server
     @SuppressLint("MissingPermission")
     fun discoverPeers(){
         manager.discoverPeers(channel, object : ActionListener {
@@ -114,6 +120,7 @@ class WifiDirectManager(
         })
     }
 
+    //disconnects from the current group.
     fun disconnect(){
         manager.removeGroup(channel, object : ActionListener {
             override fun onSuccess() {
