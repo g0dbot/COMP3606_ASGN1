@@ -76,6 +76,7 @@ class WifiDirectManager(
     //req erver
     @SuppressLint("MissingPermission")
     fun createGroup(){
+
         manager.createGroup(channel, object : ActionListener {
             override fun onSuccess() {
                 Log.e("WFDManager","Successfully created a group with myself as the GO")

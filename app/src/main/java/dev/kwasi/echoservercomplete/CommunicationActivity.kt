@@ -154,6 +154,11 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     //handles group formation status, starts server if group owner, or client if not.
     //req client server
     override fun onGroupStatusChanged(groupInfo: WifiP2pGroup?) {
+
+        if (groupInfo != null) { // Group has been formed
+            Toast.makeText(this, "Group was auto created", Toast.LENGTH_SHORT).show() // Add this line
+        }
+
         val text = if (groupInfo == null){
             "Group is not formed"
         } else {
