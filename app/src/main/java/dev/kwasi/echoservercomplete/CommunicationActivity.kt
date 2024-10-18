@@ -133,9 +133,12 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         val etString = etMessage.text.toString()
         val content = ContentModel(etString, deviceIp)
         etMessage.text.clear()
-        client?.sendMessage(content)
+        if (server != null) {
+            server?.sendMessage(content)
+        } else {
+            client?.sendMessage(content)
+        }
         chatListAdapter?.addItemToEnd(content)
-
     }
 
     //handles changes in WiFi direct state and updates UI accordingly
@@ -177,8 +180,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         wfdHasConnection = groupInfo != null
 
         if (groupInfo == null){
-            server?.close()
-            client?.close()
+            disconnectAndCleanup()
         } else if (groupInfo.isGroupOwner && server == null){
             server = Server(this)
             deviceIp = "192.168.49.1"
@@ -186,6 +188,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             client = Client(this)
             deviceIp = client!!.ip
         }
+        updateUI()
     }
 
     //Notifies updates on device parameters
@@ -208,4 +211,23 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        disconnectAndCleanup()
+    }
+
+    private fun disconnectAndCleanup() {
+        wfdManager?.disconnect()
+        server?.close()
+        client?.close()
+        server = null
+        client = null
+        wfdHasConnection = false
+        updateUI()
+    }
+
+    fun refreshConnection(view: View) {
+        disconnectAndCleanup()
+        wfdManager?.discoverPeers()
+    }
 }
