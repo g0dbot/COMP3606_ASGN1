@@ -46,6 +46,8 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     private var client: Client? = null
     private var deviceIp: String = ""
 
+    //inits activity, sets up the UI, and prepares the WifiDirectManager and adapters for peer and chat lists
+    //req client server
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -71,6 +73,8 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         rvChatList.layoutManager = LinearLayoutManager(this)
     }
 
+    //registers WifiDirectManager receiver when activity resumes.
+    //req client server
     override fun onResume() {
         super.onResume()
         wfdManager?.also {
@@ -78,20 +82,28 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         }
     }
 
+    //unregisters WifiDirectManager receiver when activity pauses.
+    //req client server
     override fun onPause() {
         super.onPause()
         wfdManager?.also {
             unregisterReceiver(it)
         }
     }
+
+    //inits creation of a WiFi direct group
+    //req server
     fun createGroup(view: View) {
         wfdManager?.createGroup()
     }
 
+    //starts discovering nearby WiFi direct devices
     fun discoverNearbyPeers(view: View) {
         wfdManager?.discoverPeers()
     }
 
+    //updates UI based on the state of the WiFi direct connection and devices
+    //req client server
     private fun updateUI(){
         //The rules for updating the UI are as follows:
         // IF the WFD adapter is NOT enabled then
@@ -114,6 +126,8 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         wfdConnectedView.visibility = if(wfdHasConnection)View.VISIBLE else View.GONE
     }
 
+    //sends message to the connected client
+    //req client server
     fun sendMessage(view: View) {
         val etMessage:EditText = findViewById(R.id.etMessage)
         val etString = etMessage.text.toString()
@@ -124,6 +138,8 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
     }
 
+    //handles changes in WiFi direct state and updates UI accordingly
+    //req client server
     override fun onWiFiDirectStateChanged(isEnabled: Boolean) {
         wfdAdapterEnabled = isEnabled
         var text = "There was a state change in the WiFi Direct. Currently it is "
@@ -138,6 +154,8 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         updateUI()
     }
 
+    //updates the list of nearby devices and UI upon peer list change
+    //req client server
     override fun onPeerListUpdated(deviceList: Collection<WifiP2pDevice>) {
         val toast = Toast.makeText(this, "Updated listing of nearby WiFi Direct devices", Toast.LENGTH_SHORT)
         toast.show()
@@ -146,6 +164,8 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         updateUI()
     }
 
+    //handles group formation status, starts server if group owner, or client if not.
+    //req client server
     override fun onGroupStatusChanged(groupInfo: WifiP2pGroup?) {
         val text = if (groupInfo == null){
             "Group is not formed"
@@ -168,16 +188,20 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         }
     }
 
+    //Notifies updates on device parameters
+    //req client server
     override fun onDeviceStatusChanged(thisDevice: WifiP2pDevice) {
         val toast = Toast.makeText(this, "Device parameters have been updated" , Toast.LENGTH_SHORT)
         toast.show()
     }
 
+    //connects to the selected peer device
+    //req client server
     override fun onPeerClicked(peer: WifiP2pDevice) {
         wfdManager?.connectToPeer(peer)
     }
 
-
+    //handles incoming content messages from server and updates the chat list.
     override fun onContent(content: ContentModel) {
         runOnUiThread{
             chatListAdapter?.addItemToEnd(content)

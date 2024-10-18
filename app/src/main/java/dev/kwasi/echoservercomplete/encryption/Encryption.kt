@@ -8,11 +8,6 @@ import javax.crypto.Cipher
 import kotlin.io.encoding.Base64
 import kotlin.random.Random
 
-//blh
-
-interface Authenticator{
-
-}
 
 @OptIn(kotlin.io.encoding.ExperimentalEncodingApi::class)
 class Encryption {
@@ -93,7 +88,7 @@ class Encryption {
     //chall resp
     fun authenticateStudent(studentID: String): Boolean {
         // Lecturer sends a random number to the student
-        val randomNumber = genRandomNum()
+        val randomNumber = genRandomNum().toString()
 
         // Student encrypts the random number with their StudentID
         val encryptedResponse = studentResponse(randomNumber, studentID)
