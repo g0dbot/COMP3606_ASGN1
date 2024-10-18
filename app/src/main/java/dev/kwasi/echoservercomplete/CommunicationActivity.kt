@@ -160,10 +160,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         }
         
         val etMessage: EditText = findViewById(R.id.etMessage)
-        val etString = etMessage.text.toString()
+        val message = etMessage.text.toString()
         val studentId = etStudentId.text.toString()
-        val encryptedMessage = encryption.encryptMessage(etString, studentId)
-        val content = ContentModel(encryptedMessage, deviceIp)
+        val content = ContentModel(message, deviceIp)
         etMessage.text.clear()
         if (server != null) {
             server?.sendMessage(content)
@@ -197,8 +196,6 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         updateUI()
     }
 
-    //handles group formation status, starts server if group owner, or client if not.
-    //req client server
     override fun onGroupStatusChanged(groupInfo: WifiP2pGroup?) {
         val text = if (groupInfo == null) {
             "Group is not formed"
@@ -221,20 +218,15 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         updateUI()
     }
 
-    //Notifies updates on device parameters
-    //req client server
     override fun onDeviceStatusChanged(thisDevice: WifiP2pDevice) {
         val toast = Toast.makeText(this, "Device parameters have been updated", Toast.LENGTH_SHORT)
         toast.show()
     }
 
-    //connects to the selected peer device
-    //req client server
     override fun onPeerClicked(peer: WifiP2pDevice) {
         wfdManager?.connectToPeer(peer)
     }
 
-    //handles incoming content messages from server and updates the chat list.
     override fun onContent(content: ContentModel) {
         runOnUiThread {
             chatListAdapter?.addItemToEnd(content)
@@ -270,18 +262,17 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     }
 
     private fun isValidStudentId(studentId: String): Boolean {
-        // Implement your student ID validation logic here
-        return studentId.isNotEmpty() && studentId.length == 8 // Example: 8-digit ID
+        return studentId.isNotEmpty() && studentId.length == 8
     }
 
     private fun authenticateAndSearch() {
         val studentId = etStudentId.text.toString()
-        isAuthenticated = encryption.authenticateStudent(studentId)
-        if (isAuthenticated) {
+        if (isValidStudentId(studentId)) {
+            isAuthenticated = true
             Toast.makeText(this, "Authentication successful", Toast.LENGTH_SHORT).show()
-            searchForClasses()
+            wfdManager?.discoverPeers()
         } else {
-            Toast.makeText(this, "Authentication failed", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Invalid student ID", Toast.LENGTH_SHORT).show()
         }
     }
 }

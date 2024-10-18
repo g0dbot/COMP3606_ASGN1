@@ -8,6 +8,8 @@ import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
+import android.widget.Button
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -15,11 +17,13 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 
 class PermissionActivity : AppCompatActivity() {
-    /// The [requestCode] variable acts as an identifier for the app that's requesting the permissions.
     private val requestCode = 1234
 
-    //inits activity, checks for necessary permissions, and requests them if not granted
-    //req client server
+    private lateinit var tvPermissionTitle: TextView
+    private lateinit var tvPermissionDescription: TextView
+    private lateinit var btnRequestPermissions: Button
+    private lateinit var btnGoToSettings: Button
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -30,87 +34,111 @@ class PermissionActivity : AppCompatActivity() {
             insets
         }
 
-        // If we do not have our permissions, we need to request them. Create an array of the permissions we want,
-        // then send a request to the android OS
-        if (!hasAllPermissions()){
-            var perm = arrayOf(
-                Manifest.permission.ACCESS_WIFI_STATE,
-                Manifest.permission.CHANGE_WIFI_STATE,
-                Manifest.permission.INTERNET,
-                Manifest.permission.ACCESS_FINE_LOCATION,
-            )
-            if (SDK_INT >= 33){
-                // Android 13 (API 33) requires the NEARBY_WIFI_DEVICES permission
-                perm +=Manifest.permission.NEARBY_WIFI_DEVICES
-            }
+        initializeViews()
+        setupListeners()
+        updateUI()
+    }
 
-            ActivityCompat.requestPermissions(this, perm, requestCode)
+    private fun initializeViews() {
+        tvPermissionTitle = findViewById(R.id.tvPermissionTitle)
+        tvPermissionDescription = findViewById(R.id.tvPermissionDescription)
+        btnRequestPermissions = findViewById(R.id.btnRequestPermissions)
+        btnGoToSettings = findViewById(R.id.btnGoToSettings)
+    }
 
+    private fun setupListeners() {
+        btnRequestPermissions.setOnClickListener {
+            requestPermissions()
+        }
+
+        btnGoToSettings.setOnClickListener {
+            goToSettings()
+        }
+    }
+
+    private fun updateUI() {
+        if (hasAllPermissions()) {
+            tvPermissionTitle.text = "Permissions Granted"
+            tvPermissionDescription.text = "All necessary permissions have been granted. You can now use the app."
+            btnRequestPermissions.visibility = View.GONE
+            btnGoToSettings.visibility = View.GONE
         } else {
-            navigateToNextPage()
+            tvPermissionTitle.text = "Permissions Required"
+            tvPermissionDescription.text = "This app requires certain permissions to function properly. Please grant the necessary permissions to continue."
+            btnRequestPermissions.visibility = View.VISIBLE
+            btnGoToSettings.visibility = View.VISIBLE
         }
     }
 
-    //checks perms again when activity resumes and navigates to the next page if all perms granted
-    //req client server
-    override fun onResume() {
-        super.onResume()
-        if (hasAllPermissions()){
-            navigateToNextPage()
+    private fun requestPermissions() {
+        val permissions = mutableListOf(
+            Manifest.permission.ACCESS_WIFI_STATE,
+            Manifest.permission.CHANGE_WIFI_STATE,
+            Manifest.permission.INTERNET,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        )
+
+        if (SDK_INT >= 33) {
+            permissions.add(Manifest.permission.NEARBY_WIFI_DEVICES)
+        }
+
+        ActivityCompat.requestPermissions(this, permissions.toTypedArray(), requestCode)
+    }
+
+    private fun hasAllPermissions(): Boolean {
+        val basePermissions = arrayOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_WIFI_STATE,
+            Manifest.permission.CHANGE_WIFI_STATE,
+            Manifest.permission.INTERNET
+        )
+
+        val allGranted = basePermissions.all {
+            checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED
+        }
+
+        return if (SDK_INT >= 33) {
+            allGranted && checkSelfPermission(Manifest.permission.NEARBY_WIFI_DEVICES) == PackageManager.PERMISSION_GRANTED
+        } else {
+            allGranted
         }
     }
 
-    //verifies all req perms are granted
-    //req client server
-    private fun hasAllPermissions():Boolean{
-        var perm = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
-                checkSelfPermission(Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED &&
-                checkSelfPermission(Manifest.permission.CHANGE_WIFI_STATE) == PackageManager.PERMISSION_GRANTED &&
-                checkSelfPermission(Manifest.permission.INTERNET) == PackageManager.PERMISSION_GRANTED
-        if (SDK_INT >= 33){
-            // If we're running on android SDK 33 or higher, we also need the NEARBY_WIFI_DEVICES permission
-            perm = perm && checkSelfPermission(Manifest.permission.NEARBY_WIFI_DEVICES) == PackageManager.PERMISSION_GRANTED
-        }
-        return perm
-    }
-
-    //handles res of the perm req and navigates if permissions are granted
-    //req client server
-    /// This function is called by the OS itself after the user interacts with the permissions popups.
-    /// We need to iterate through each of the permissions we requested and make sure that ALL are granted.
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
-        when(requestCode){
-            this.requestCode -> {
-                if (hasAllPermissions()){
-                    navigateToNextPage()
-                }
-            }
-            else -> {
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == this.requestCode) {
+            if (hasAllPermissions()) {
+                navigateToNextPage()
+            } else {
+                updateUI()
             }
         }
     }
 
-    //navigate to another page
-    //req vlient server
-    private fun navigateToNextPage(){
-        val i = Intent(this,CommunicationActivity::class.java)
-        i.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
-        startActivity(i)
+    private fun navigateToNextPage() {
+        val intent = Intent(this, CommunicationActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+        startActivity(intent)
+        finish()
     }
 
-
-    //app to settings
-    //req client server
-    fun goToSettings(view: View) {
+    private fun goToSettings() {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
         val uri = Uri.fromParts("package", packageName, null)
-        intent.setData(uri)
+        intent.data = uri
         startActivity(intent)
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (hasAllPermissions()) {
+            navigateToNextPage()
+        } else {
+            updateUI()
+        }
+    }
 }
