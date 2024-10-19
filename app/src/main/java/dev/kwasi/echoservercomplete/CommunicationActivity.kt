@@ -1,5 +1,6 @@
 package dev.kwasi.echoservercomplete
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -10,13 +11,17 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dev.kwasi.echoservercomplete.chatlist.ChatListAdapter
+import dev.kwasi.echoservercomplete.connected.ConnectedDevicesAdapter
+import dev.kwasi.echoservercomplete.connected.ConnectedDevicesAdapterInterface
 import dev.kwasi.echoservercomplete.models.ContentModel
 import dev.kwasi.echoservercomplete.network.Client
 import dev.kwasi.echoservercomplete.network.NetworkMessageInterface
@@ -26,8 +31,12 @@ import dev.kwasi.echoservercomplete.peerlist.PeerListAdapterInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectManager
 
-class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerListAdapterInterface, NetworkMessageInterface {
+
+class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkMessageInterface, ConnectedDevicesAdapterInterface {
     private var wfdManager: WifiDirectManager? = null
+    private var connectedDevicesAdapter: ConnectedDevicesAdapter? = null
+    private var peerListAdapter: PeerListAdapter? = null
+    private var chatListAdapter: ChatListAdapter? = null
 
     private val intentFilter = IntentFilter().apply {
         addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION)
@@ -35,9 +44,6 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION)
         addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION)
     }
-
-    private var peerListAdapter:PeerListAdapter? = null
-    private var chatListAdapter:ChatListAdapter? = null
 
     private var wfdAdapterEnabled = false
     private var wfdHasConnection = false
@@ -48,8 +54,11 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
     //inits activity, sets up the UI, and prepares the WifiDirectManager and adapters for peer and chat lists
     //req client server
+    @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("CommunicationActivity", "onCreate: Starting activity")
+
         enableEdgeToEdge()
         setContentView(R.layout.activity_communication_lecturer)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -58,12 +67,20 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             insets
         }
 
+        Log.d("CommunicationActivity", "onCreate: Initializing WifiDirectManager")
         val manager: WifiP2pManager = getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
         val channel = manager.initialize(this, mainLooper, null)
         wfdManager = WifiDirectManager(manager, channel, this)
 
         //auto create the group
+        Log.d("CommunicationActivity", "onCreate: Creating group")
         wfdManager?.createGroup()
+
+        //display the list of connected devices
+        connectedDevicesAdapter = ConnectedDevicesAdapter(this)
+        val rvConnectedDevicesList: RecyclerView = findViewById(R.id.recyclerViewConnectedDevices)
+        rvConnectedDevicesList.adapter = connectedDevicesAdapter
+        rvConnectedDevicesList.layoutManager = LinearLayoutManager(this)
     }
 
     //registers WifiDirectManager receiver when activity resumes.
@@ -107,6 +124,20 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             // 2) discover nearby groups
         // ELSE IF there are nearby groups found, i need to show them in a list
         // ELSE IF i have a WFD connection i need to show a chat interface where i can send/receive messages
+        // Find the no devices TextView
+        val tvNoDevices: TextView = findViewById(R.id.tvNoDevices)
+
+        // Check if there are connected devices
+        if (connectedDevicesAdapter?.itemCount == 0) {
+            // No devices connected, show the TextView
+            tvNoDevices.visibility = View.VISIBLE
+        } else {
+            // Devices connected, hide the TextView
+            tvNoDevices.visibility = View.GONE
+        }
+
+        // Notify the connected devices adapter of data change
+        connectedDevicesAdapter?.notifyDataSetChanged()
 
     }
 
@@ -154,7 +185,6 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     //handles group formation status, starts server if group owner, or client if not.
     //req client server
     override fun onGroupStatusChanged(groupInfo: WifiP2pGroup?) {
-
         if (groupInfo != null) { // Group has been formed
             Toast.makeText(this, "Group was auto created", Toast.LENGTH_SHORT).show() // Add this line
         }
@@ -177,6 +207,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             client = Client(this)
             deviceIp = client!!.ip
         }
+
         updateUI()
     }
 
@@ -187,9 +218,10 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         toast.show()
     }
 
-    //connects to the selected peer device
-    //req client server
-    override fun onPeerClicked(peer: WifiP2pDevice) {
+    //on lecturer clicking student
+    override fun onConnDeviceClick(peer: WifiP2pDevice) {
+        // Handle the connection click for the connected device
+        Toast.makeText(this, "Connecting to: ${peer.deviceName}", Toast.LENGTH_SHORT).show()
         wfdManager?.connectToPeer(peer)
     }
 
