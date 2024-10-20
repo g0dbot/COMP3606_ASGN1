@@ -8,6 +8,7 @@ import android.net.wifi.p2p.WifiP2pManager
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.Button
@@ -183,12 +184,30 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         val studentId = etStudentId.text.toString()
         val content = ContentModel(message, deviceIp)
         etMessage.text.clear()
-        if (server != null) {
-            server?.sendMessage(content)
-        } else {
-            client?.sendMessage(content)
+
+        try {
+            Log.d("CommunicationActivity", "Attempting to send message. Server: $server, Client: $client")
+            when {
+                server != null -> {
+                    Log.d("CommunicationActivity", "Sending message through server")
+                    server?.sendMessage(content)
+                }
+                client != null -> {
+                    Log.d("CommunicationActivity", "Sending message through client")
+                    client?.sendMessage(content)
+                }
+                else -> {
+                    Log.e("CommunicationActivity", "Both server and client are null")
+                    Toast.makeText(this, "Error: Not connected", Toast.LENGTH_SHORT).show()
+                    return
+                }
+            }
+            chatListAdapter?.addItemToEnd(content)
+            Log.d("CommunicationActivity", "Message sent successfully")
+        } catch (e: Exception) {
+            Log.e("CommunicationActivity", "Error sending message", e)
+            Toast.makeText(this, "Error sending message: ${e.message}", Toast.LENGTH_SHORT).show()
         }
-        chatListAdapter?.addItemToEnd(content)
     }
 
     //handles changes in WiFi direct state and updates UI accordingly
@@ -234,6 +253,10 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             client = Client(this)
             deviceIp = client!!.ip
         }
+
+        val sendButton: Button = findViewById(R.id.btnSendMessage)
+        sendButton.isEnabled = wfdHasConnection
+
         updateUI()
     }
 
@@ -287,7 +310,6 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     private fun authenticateAndSearch() {
         val studentId = etStudentId.text.toString()
         if (isValidStudentId(studentId)) {
-            // Perform authentication here if needed
             isAuthenticated = true
             Toast.makeText(this, "Authentication successful", Toast.LENGTH_SHORT).show()
             wfdManager?.discoverPeers()

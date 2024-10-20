@@ -67,16 +67,20 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
 
     fun sendMessage(content: ContentModel) {
         thread {
-            clientMap.forEach { (_, socket) ->
+            if (clientMap.isEmpty()) {
+                Log.e("SERVER", "No clients connected. Unable to send message.")
+                return@thread
+            }
+            clientMap.forEach { (clientIp, socket) ->
                 try {
+                    Log.d("SERVER", "Attempting to send message to client: $clientIp")
                     val writer = socket.outputStream.bufferedWriter()
                     val contentStr = Gson().toJson(content)
                     writer.write("$contentStr\n")
                     writer.flush()
-                    Log.e("SERVER", "Sent message to client: ${socket.inetAddress.hostAddress}")
+                    Log.d("SERVER", "Successfully sent message to client: $clientIp")
                 } catch (e: Exception) {
-                    Log.e("SERVER", "Error sending message to client: ${socket.inetAddress.hostAddress}")
-                    e.printStackTrace()
+                    Log.e("SERVER", "Error sending message to client: $clientIp", e)
                 }
             }
         }
@@ -101,3 +105,4 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
     }
 
 }
+

@@ -89,10 +89,8 @@ class Encryption {
     fun authenticateStudent(studentID: String): Boolean {
         // Lecturer sends a random number to the student
         val randomNumber = genRandomNum().toString()
-
         // Student encrypts the random number with their StudentID
         val encryptedResponse = studentResponse(randomNumber, studentID)
-
         // Lecturer verifies the student's response
         return verifyResponse(encryptedResponse, randomNumber, studentID)
     }
