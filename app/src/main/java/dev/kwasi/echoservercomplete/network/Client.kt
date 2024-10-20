@@ -13,25 +13,43 @@ class Client (private val networkMessageInterface: NetworkMessageInterface){
     private lateinit var reader: BufferedReader
     private lateinit var writer: BufferedWriter
     var ip:String = ""
+    private var studentId: String = ""
 
     init {
         thread {
-            clientSocket = Socket("192.168.49.1", Server.PORT)
-            reader = clientSocket.inputStream.bufferedReader()
-            writer = clientSocket.outputStream.bufferedWriter()
-            ip = clientSocket.inetAddress.hostAddress!!
-            while(true){
-                try{
+            try {
+                clientSocket = Socket("192.168.49.1", Server.PORT)
+                reader = clientSocket.inputStream.bufferedReader()
+                writer = clientSocket.outputStream.bufferedWriter()
+                ip = clientSocket.inetAddress.hostAddress!!
+
+                while (true) {
                     val serverResponse = reader.readLine()
-                    if (serverResponse != null){
+                    if (serverResponse != null) {
                         val serverContent = Gson().fromJson(serverResponse, ContentModel::class.java)
                         networkMessageInterface.onContent(serverContent)
                     }
-                } catch(e: Exception){
-                    Log.e("CLIENT", "An error has occurred in the client")
-                    e.printStackTrace()
-                    break
                 }
+            } catch (e: Exception) {
+                Log.e("CLIENT", "An error has occurred in the client: ${e.message}", e)
+            }
+        }
+    }
+
+    fun sendId(studentId: String) {
+        thread {
+            try {
+                if (!::clientSocket.isInitialized || !clientSocket.isConnected) {
+                    throw Exception("Client socket is not initialized or connected!")
+                }
+
+                val content = ContentModel(message = studentId, senderIp = ip)
+                val contentAsStr: String = Gson().toJson(content)
+
+                writer.write("$contentAsStr\n")
+                writer.flush()
+            } catch (e: Exception) {
+                Log.e("CLIENT", "Error sending student ID: ${e.message}", e)
             }
         }
     }

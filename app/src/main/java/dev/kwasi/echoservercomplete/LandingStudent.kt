@@ -6,6 +6,7 @@ import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pGroup
 import android.net.wifi.p2p.WifiP2pManager
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.Toast
@@ -120,19 +121,37 @@ class LandingStudent : AppCompatActivity(), WifiDirectInterface, PeerListAdapter
         wfdConnectedView.visibility = if(wfdHasConnection)View.VISIBLE else View.GONE
     }
 
-    //sends message to the connected client
-    //req client server
     fun sendMessage(view: View) {
-        val etMessage:EditText = findViewById(R.id.etMessage)
-        val etString = etMessage.text.toString()
-        val content = ContentModel(etString, deviceIp)
+
+        val etMessage: EditText = findViewById(R.id.etMessage)
+        val message = etMessage.text.toString()
+        val studentId = message
+        val content = ContentModel(message, deviceIp)
         etMessage.text.clear()
-        if (server != null) {
-            server?.sendMessage(content)
-        } else {
-            client?.sendMessage(content)
+
+        try {
+            Log.d("CommunicationActivity", "Attempting to send message. Server: $server, Client: $client")
+            when {
+                server != null -> {
+                    Log.d("CommunicationActivity", "Sending message through server")
+                    server?.sendMessage(content)
+                }
+                client != null -> {
+                    Log.d("CommunicationActivity", "Sending message through client")
+                    client?.sendMessage(content)
+                }
+                else -> {
+                    Log.e("CommunicationActivity", "Both server and client are null")
+                    Toast.makeText(this, "Error: Not connected", Toast.LENGTH_SHORT).show()
+                    return
+                }
+            }
+            chatListAdapter?.addItemToEnd(content)
+            Log.d("CommunicationActivity", "Message sent successfully")
+        } catch (e: Exception) {
+            Log.e("CommunicationActivity", "Error sending message", e)
+            Toast.makeText(this, "Error sending message: ${e.message}", Toast.LENGTH_SHORT).show()
         }
-        chatListAdapter?.addItemToEnd(content)
     }
 
     //handles changes in WiFi direct state and updates UI accordingly
@@ -179,17 +198,23 @@ class LandingStudent : AppCompatActivity(), WifiDirectInterface, PeerListAdapter
             server = Server(this, this)
             deviceIp = "192.168.49.1"
         } else if (!groupInfo.isGroupOwner && client == null) {
+
             client = Client(this)
             deviceIp = client!!.ip
         }
+
+        val etNumberInput: EditText = findViewById(R.id.etNumberInput)
+        val studentId = etNumberInput.text.toString()
+
+        if (studentId.isNotBlank()) {
+            client?.sendId(studentId) // Set student ID in client
+        } else {
+            Toast.makeText(this, "Please enter a valid student ID", Toast.LENGTH_SHORT).show()
+        }
+
         updateUI()
     }
 
-    private fun submitIdNumber(message: String) {
-        val content = ContentModel(message, deviceIp)
-        client?.sendMessage(content)
-        chatListAdapter?.addItemToEnd(content)
-    }
 
     //Notifies updates on device parameters
     //req client server
