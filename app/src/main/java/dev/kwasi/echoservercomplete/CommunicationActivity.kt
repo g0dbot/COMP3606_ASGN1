@@ -6,6 +6,8 @@ import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pGroup
 import android.net.wifi.p2p.WifiP2pManager
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
 import android.widget.EditText
 import android.widget.Button
@@ -28,9 +30,12 @@ import dev.kwasi.echoservercomplete.peerlist.PeerListAdapterInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectManager
 import com.example.comp3606a1.encryption.Encryption
+import dev.kwasi.echoservercomplete.grouplist.GroupListAdapter
+import dev.kwasi.echoservercomplete.grouplist.GroupListAdapterInterface
 import kotlin.random.Random
 
-class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerListAdapterInterface, NetworkMessageInterface {
+class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerListAdapterInterface,
+    GroupListAdapterInterface, NetworkMessageInterface {
     private var wfdManager: WifiDirectManager? = null
 
     private val intentFilter = IntentFilter().apply {
@@ -42,6 +47,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
     private var peerListAdapter: PeerListAdapter? = null
     private var chatListAdapter: ChatListAdapter? = null
+    private var groupListAdapter: GroupListAdapter? = null
 
     private var wfdAdapterEnabled = false
     private var wfdHasConnection = false
@@ -83,11 +89,24 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         rvChatList.adapter = chatListAdapter
         rvChatList.layoutManager = LinearLayoutManager(this)
 
+        groupListAdapter = GroupListAdapter(this)
+        val rvGroupList: RecyclerView = findViewById(R.id.rvGroupListing)
+        rvGroupList.adapter = groupListAdapter
+        rvGroupList.layoutManager = LinearLayoutManager(this)
+
         etStudentId = findViewById(R.id.etStudentId)
         btnSearchClasses = findViewById(R.id.btnSearchClasses)
         tvClassName = findViewById(R.id.tvClassName)
 
         encryption = Encryption()
+
+        etStudentId.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                btnSearchClasses.isEnabled = isValidStudentId(s.toString())
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
 
         btnSearchClasses.setOnClickListener {
             if (isValidStudentId(etStudentId.text.toString())) {
@@ -268,11 +287,32 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     private fun authenticateAndSearch() {
         val studentId = etStudentId.text.toString()
         if (isValidStudentId(studentId)) {
+            // Perform authentication here if needed
             isAuthenticated = true
             Toast.makeText(this, "Authentication successful", Toast.LENGTH_SHORT).show()
             wfdManager?.discoverPeers()
         } else {
             Toast.makeText(this, "Invalid student ID", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    override fun onGroupInfoUpdated(group: WifiP2pGroup?) {
+        group?.let {
+            groupListAdapter?.updateList(listOf(it))
+        }
+        updateUI()
+    }
+
+    override fun onGroupClicked(group: WifiP2pGroup) {
+        // Implement logic to join the selected group
+        wfdManager?.joinGroup(group)
+    }
+
+    fun discoverGroups(view: View) {
+        wfdManager?.discoverGroups()
+    }
+
+    override fun joinGroup(group: WifiP2pGroup) {
+        wfdManager?.joinGroup(group)
     }
 }

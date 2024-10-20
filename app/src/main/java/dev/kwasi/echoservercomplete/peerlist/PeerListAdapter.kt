@@ -26,7 +26,7 @@ class PeerListAdapter(private val iFaceImpl: PeerListAdapterInterface): Recycler
         val device = deviceList[position]
 
         holder.titleTextView.text = device.deviceName
-        holder.descriptionTextView.text = device.deviceAddress
+        holder.descriptionTextView.text = "Wi-Fi Direct Device"
 
         holder.itemView.setOnClickListener {
             iFaceImpl.onPeerClicked(device)

@@ -55,6 +55,11 @@ class WifiDirectManager(
                     groupInfo = tmpGroupInfo
                     Log.e("WFDManager","The group status has changed")
                     iFaceImpl.onGroupStatusChanged(groupInfo)
+                    
+                    // Request group info to get the list of clients in the group
+                    manager.requestGroupInfo(channel) { group ->
+                        iFaceImpl.onGroupInfoUpdated(group)
+                    }
                 }
 
 
@@ -131,6 +136,36 @@ class WifiDirectManager(
                 Log.e("WFDManager","An error occurred while trying to disconnect from the group")
             }
 
+        })
+    }
+
+    @SuppressLint("MissingPermission")
+    fun discoverGroups() {
+        manager.discoverPeers(channel, object : WifiP2pManager.ActionListener {
+            override fun onSuccess() {
+                Log.e("WFDManager", "Successfully attempted to discover groups")
+            }
+
+            override fun onFailure(reason: Int) {
+                Log.e("WFDManager", "An error occurred while trying to discover groups")
+            }
+        })
+    }
+
+    @SuppressLint("MissingPermission")
+    fun joinGroup(group: WifiP2pGroup) {
+        val config = WifiP2pConfig()
+        config.deviceAddress = group.owner.deviceAddress
+        config.groupOwnerIntent = 0 // Set to 0 to prefer being a client
+
+        manager.connect(channel, config, object : ActionListener {
+            override fun onSuccess() {
+                Log.e("WFDManager", "Successfully attempted to join group '${group.networkName}'")
+            }
+
+            override fun onFailure(reason: Int) {
+                Log.e("WFDManager", "An error occurred while trying to join group '${group.networkName}'")
+            }
         })
     }
 }

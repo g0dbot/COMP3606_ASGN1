@@ -25,8 +25,8 @@ class GroupListAdapter(private val iFaceImpl: GroupListAdapterInterface) : Recyc
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val group = groupsList[position]
 
-        holder.titleTextView.text = group.networkName
-        holder.descriptionTextView.text = group.owner?.deviceAddress ?: "Unknown"
+        holder.titleTextView.text = "Group: ${group.networkName}"
+        holder.descriptionTextView.text = "Owner: ${group.owner?.deviceName ?: "Unknown"}"
 
         holder.itemView.setOnClickListener {
             iFaceImpl.onGroupClicked(group)
