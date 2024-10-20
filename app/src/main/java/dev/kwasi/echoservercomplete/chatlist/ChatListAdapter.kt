@@ -14,8 +14,8 @@ import dev.kwasi.echoservercomplete.R
 import dev.kwasi.echoservercomplete.models.ContentModel
 import dev.kwasi.echoservercomplete.peerlist.PeerListAdapter
 
-class ChatListAdapter : RecyclerView.Adapter<ChatListAdapter.ViewHolder>(){
-    private val chatList:MutableList<ContentModel> = mutableListOf()
+class ChatListAdapter : RecyclerView.Adapter<ChatListAdapter.ViewHolder>() {
+    private val chatList: MutableList<ContentModel> = mutableListOf()
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val messageView: TextView = itemView.findViewById(R.id.messageTextView)
@@ -28,17 +28,22 @@ class ChatListAdapter : RecyclerView.Adapter<ChatListAdapter.ViewHolder>(){
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val chat = chatList[position]
-        (holder.messageView.parent as RelativeLayout).gravity = if (chat.senderIp=="192.168.49.1") Gravity.START else Gravity.END
+        (holder.messageView.parent as RelativeLayout).gravity = if (chat.senderIp == "192.168.49.1") Gravity.START else Gravity.END
         holder.messageView.text = chat.message
-
     }
 
     override fun getItemCount(): Int {
         return chatList.size
     }
 
-    fun addItemToEnd(contentModel: ContentModel){
+    fun addItemToEnd(contentModel: ContentModel) {
         chatList.add(contentModel)
-        notifyItemInserted(chatList.size)
+        notifyItemInserted(chatList.size - 1) // Use size - 1 to avoid index out of bounds
+    }
+
+    fun loadMessagesFromDb(messages: List<ContentModel>) {
+        chatList.clear() // Clear existing messages if needed
+        chatList.addAll(messages)
+        notifyDataSetChanged() // Notify the adapter to refresh the UI
     }
 }

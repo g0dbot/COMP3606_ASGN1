@@ -9,7 +9,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import dev.kwasi.echoservercomplete.R
 
-class ConnectedDevicesAdapter(private val iFaceImpl: ConnectedDevicesAdapterInterface) : RecyclerView.Adapter<ConnectedDevicesAdapter.ViewHolder>() {
+class ConnectedDevicesAdapter(private val iFaceImpl: ConnectedDevicesAdapterInterface) :
+    RecyclerView.Adapter<ConnectedDevicesAdapter.ViewHolder>() {
+
     private val connectedDevicesList: MutableList<WifiP2pDevice> = mutableListOf()
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -33,19 +35,12 @@ class ConnectedDevicesAdapter(private val iFaceImpl: ConnectedDevicesAdapterInte
         }
     }
 
-    override fun getItemCount(): Int {
-        return connectedDevicesList.size
-    }
+    override fun getItemCount(): Int = connectedDevicesList.size
 
     @SuppressLint("NotifyDataSetChanged")
-    fun updateList(newConnectedDevicesList: Collection<WifiP2pDevice>) {
-        // Clear the list and only add devices that are connected
+    fun updateConnectedDevices(newConnectedDevicesList: Collection<WifiP2pDevice>) {
         connectedDevicesList.clear()
-        for (device in newConnectedDevicesList) {
-            if (device.status == WifiP2pDevice.CONNECTED) {
-                connectedDevicesList.add(device)
-            }
-        }
-        notifyDataSetChanged()
+        connectedDevicesList.addAll(newConnectedDevicesList)
+        notifyDataSetChanged() // Notify the adapter of data changes
     }
 }

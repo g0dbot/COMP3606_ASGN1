@@ -36,6 +36,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".LandingLecturer" />
+        <activity android:name=".LandingStudent" />
     </application>
 
 </manifest>

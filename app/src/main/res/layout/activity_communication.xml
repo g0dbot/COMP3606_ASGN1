@@ -110,7 +110,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-        
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvChat"
             android:layout_width="match_parent"
@@ -137,7 +137,7 @@
                 android:maxLines="5"
                 android:hint="Enter message..."
                 android:layout_height="wrap_content"
-                 />
+                />
 
             <Button
                 android:layout_width="0dp"
@@ -146,7 +146,7 @@
                 android:onClick="sendMessage"
                 android:layout_height="wrap_content"/>
         </LinearLayout>
-        
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
