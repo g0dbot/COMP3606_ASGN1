@@ -1,3 +1,5 @@
+/*IDS 816034693 816017853*/
+
 package dev.kwasi.echoservercomplete.network
 
 import android.content.Context
@@ -5,6 +7,7 @@ import android.util.Log
 import com.google.gson.Gson
 import dev.kwasi.echoservercomplete.database.Database
 import dev.kwasi.echoservercomplete.models.ContentModel
+import com.example.comp3606a1.encryption.Encryption
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
@@ -18,7 +21,22 @@ class Server(private val iFaceImpl: NetworkMessageInterface, context: Context) {
 
     private val svrSocket: ServerSocket = ServerSocket(PORT, 0, InetAddress.getByName("192.168.49.1"))
     private val clientMap: HashMap<String, Socket> = HashMap()
+    private val randomMap: HashMap<String, String> = HashMap() // To store randomR for each client IP
     private val dbHelper = Database(context, null) // Pass null for CursorFactory
+    private val encryption = Encryption()
+
+    private val validStudents = listOf(
+        "816017853",
+        "816123456",
+        "816234567",
+        "816345678",
+        "816456789",
+        "816567890",
+        "816678901",
+        "816789012",
+        "816890123",
+        "816901234"
+    )
 
     init {
         thread {
@@ -50,7 +68,34 @@ class Server(private val iFaceImpl: NetworkMessageInterface, context: Context) {
                             Log.e("SERVER", "Received a message from client $ipAddress")
                             val clientContent = Gson().fromJson(receivedJson, ContentModel::class.java)
 
-                            //store the msg in the database
+                            if (clientContent.message == "I am here") {
+                                // Start challenge-response protocol
+                                val randomR = encryption.genRandomNum().toString()
+                                randomMap[ipAddress] = randomR // Store the randomR associated with client IP
+                                val challengeMessage = ContentModel("R:$randomR", ipAddress)
+
+                                sendMessage(challengeMessage)
+                            } else if (clientContent.message.startsWith("EncryptedR:")) {
+                                val encryptedResponse = clientContent.message.removePrefix("EncryptedR:")
+                                val randomR = randomMap[ipAddress] // Retrieve the stored randomR
+
+                                if (randomR != null) {
+                                    val studentId = clientContent.senderIp // Assume IP for now
+
+                                    // Verify student's response
+                                    val success = encryption.verifyResponse(encryptedResponse, randomR, studentId)
+
+                                    if (success) {
+                                        Log.e("SERVER", "Student authenticated successfully!")
+                                    } else {
+                                        Log.e("SERVER", "Student authentication failed.")
+                                    }
+                                } else {
+                                    Log.e("SERVER", "No random number found for client $ipAddress")
+                                }
+                            }
+
+                            // Store the message in the database
                             dbHelper.createChatMessage(ipAddress, clientContent.message)
 
                             iFaceImpl.onContent(clientContent)
@@ -101,6 +146,4 @@ class Server(private val iFaceImpl: NetworkMessageInterface, context: Context) {
             e.printStackTrace()
         }
     }
-
-
 }

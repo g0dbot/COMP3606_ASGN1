@@ -1,3 +1,5 @@
+/*IDS 816034693 816017853*/
+
 package dev.kwasi.echoservercomplete.network
 
 import dev.kwasi.echoservercomplete.models.ContentModel

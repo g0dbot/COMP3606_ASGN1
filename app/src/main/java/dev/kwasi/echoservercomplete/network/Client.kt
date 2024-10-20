@@ -1,19 +1,23 @@
+/*IDS 816034693 816017853*/
+
 package dev.kwasi.echoservercomplete.network
 
 import android.util.Log
 import com.google.gson.Gson
 import dev.kwasi.echoservercomplete.models.ContentModel
+import com.example.comp3606a1.encryption.Encryption
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.net.Socket
 import kotlin.concurrent.thread
 
-class Client (private val networkMessageInterface: NetworkMessageInterface){
+class Client(private val networkMessageInterface: NetworkMessageInterface) {
     private lateinit var clientSocket: Socket
     private lateinit var reader: BufferedReader
     private lateinit var writer: BufferedWriter
-    var ip:String = ""
+    var ip: String = ""
     private var studentId: String = ""
+    private val encryption = Encryption()
 
     init {
         thread {
@@ -23,10 +27,24 @@ class Client (private val networkMessageInterface: NetworkMessageInterface){
                 writer = clientSocket.outputStream.bufferedWriter()
                 ip = clientSocket.inetAddress.hostAddress!!
 
+                // Send initial "I am here" message
+                sendMessage(ContentModel("I am here", ip))
+
+                // Continuously listen for server responses
                 while (true) {
                     val serverResponse = reader.readLine()
                     if (serverResponse != null) {
                         val serverContent = Gson().fromJson(serverResponse, ContentModel::class.java)
+
+                        // If the response is a challenge (R), encrypt and send it back
+                        if (serverContent.message.startsWith("R:")) {
+                            val randomR = serverContent.message.removePrefix("R:")
+                            val encryptedR = encryption.studentResponse(randomR, studentId)
+
+                            // Send the encrypted R to the server
+                            sendMessage(ContentModel("EncryptedR:$encryptedR", ip))
+                        }
+
                         networkMessageInterface.onContent(serverContent)
                     }
                 }
@@ -54,16 +72,15 @@ class Client (private val networkMessageInterface: NetworkMessageInterface){
         }
     }
 
-    fun sendMessage(content: ContentModel){
+    fun sendMessage(content: ContentModel) {
         thread {
-            if (!clientSocket.isConnected){
+            if (!clientSocket.isConnected) {
                 throw Exception("We aren't currently connected to the server!")
             }
-            val contentAsStr:String = Gson().toJson(content)
+            val contentAsStr: String = Gson().toJson(content)
             writer.write("$contentAsStr\n")
             writer.flush()
         }
-
     }
 
     fun close() {

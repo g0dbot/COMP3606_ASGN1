@@ -1,3 +1,5 @@
+/*IDS 816034693 816017853*/
+
 package dev.kwasi.echoservercomplete
 
 import android.Manifest
@@ -99,7 +101,7 @@ class PermissionActivity : AppCompatActivity() {
     //req vlient server
     //CHANGE THIS FROM LandingLecturer for student interface
     private fun navigateToNextPage(){
-        val i = Intent(this,LandingStudent::class.java)
+        val i = Intent(this,LandingLecturer::class.java)
         i.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
         startActivity(i)
     }

@@ -1,3 +1,5 @@
+/*IDS 816034693 816017853*/
+
 package com.example.comp3606a1.encryption
 import java.security.MessageDigest
 import kotlin.text.Charsets.UTF_8
@@ -20,21 +22,21 @@ class Encryption {
     private val students: List<String> = listOf("816017853", "816123456")
 
     //gen strong seed
-    private fun hashStrSha256(str: String): String{
+    fun hashStrSha256(str: String): String{
         val algorithm = "SHA-256"
         val hashedString = MessageDigest.getInstance(algorithm).digest(str.toByteArray(UTF_8))
         return hashedString.toHex()
     }
 
     //gen AES Key
-    private fun generateAESKey(seed: String): SecretKeySpec {
+    fun generateAESKey(seed: String): SecretKeySpec {
         val first32Chars = getFirstNChars(seed, 32)
         val secretKey = SecretKeySpec(first32Chars.toByteArray(), "AES")
         return secretKey
     }
 
     //gen AES IV
-    private fun generateIV(seed: String): IvParameterSpec {
+    fun generateIV(seed: String): IvParameterSpec {
         val first16Chars = getFirstNChars(seed, 16)
         return IvParameterSpec(first16Chars.toByteArray())
     }
@@ -65,7 +67,7 @@ class Encryption {
 
     //challenge resp protocol
     //gen rand num
-    private fun genRandomNum(): Int {
+    fun genRandomNum(): Int {
         return Random.nextInt()
     }
 
