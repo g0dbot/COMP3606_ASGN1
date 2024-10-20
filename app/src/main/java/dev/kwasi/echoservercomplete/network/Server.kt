@@ -19,6 +19,7 @@ class Server(private val iFaceImpl: NetworkMessageInterface, context: Context) {
     private val svrSocket: ServerSocket = ServerSocket(PORT, 0, InetAddress.getByName("192.168.49.1"))
     private val clientMap: HashMap<String, Socket> = HashMap()
     private val dbHelper = Database(context, null) // Pass null for CursorFactory
+    private val validStudentIds = listOf("816017853", "816123456") // Add more IDs as needed
 
     init {
         thread {
@@ -36,30 +37,76 @@ class Server(private val iFaceImpl: NetworkMessageInterface, context: Context) {
     }
 
     private fun handleSocket(socket: Socket) {
-        socket.inetAddress.hostAddress?.let { ipAddress ->
-            clientMap[ipAddress] = socket
-            Log.e("SERVER", "A new connection has been detected!")
-            thread {
-                val clientReader = socket.inputStream.bufferedReader()
-                var receivedJson: String?
+        thread {
+            val clientIp = socket.inetAddress.hostAddress
+            val reader = socket.inputStream.bufferedReader()
+            val writer = socket.outputStream.bufferedWriter()
 
-                while (socket.isConnected) {
-                    try {
-                        receivedJson = clientReader.readLine()
-                        if (receivedJson != null) {
-                            Log.e("SERVER", "Received a message from client $ipAddress")
-                            val clientContent = Gson().fromJson(receivedJson, ContentModel::class.java)
+            try {
+                // Wait for "I am here" message
+                val initialMessage = reader.readLine()
+                if (initialMessage == "I am here") {
+                    // Generate and send random number
+                    val randomNumber = Encryption().genRandomNum().toString()
+                    writer.write("$randomNumber\n")
+                    writer.flush()
 
-                            //store the msg in the database
-                            dbHelper.createChatMessage(ipAddress, clientContent.message)
+                    // Receive encrypted response
+                    val encryptedResponse = reader.readLine()
 
-                            iFaceImpl.onContent(clientContent)
-                        }
-                    } catch (e: Exception) {
-                        Log.e("SERVER", "An error has occurred with the client $ipAddress")
-                        e.printStackTrace()
+                    // Verify response
+                    val studentId = verifyStudentResponse(encryptedResponse, randomNumber)
+                    if (studentId != null) {
+                        clientMap[clientIp!!] = socket
+                        Log.e("SERVER", "Student authenticated: $studentId")
+                        writer.write("AUTH_SUCCESS\n")
+                        writer.flush()
+                        
+                        // Continue with normal message handling
+                        handleAuthenticatedClient(clientIp, reader)
+                    } else {
+                        Log.e("SERVER", "Authentication failed for client: $clientIp")
+                        writer.write("AUTH_FAILED\n")
+                        writer.flush()
+                        socket.close()
                     }
+                } else {
+                    Log.e("SERVER", "Invalid initial message from client: $clientIp")
+                    socket.close()
                 }
+            } catch (e: Exception) {
+                Log.e("SERVER", "Error handling client $clientIp", e)
+                socket.close()
+            }
+        }
+    }
+
+    private fun verifyStudentResponse(encryptedResponse: String, randomNumber: String): String? {
+        val encryption = Encryption()
+        for (studentId in encryption.students) {
+            if (encryption.verifyResponse(encryptedResponse, randomNumber, studentId)) {
+                return studentId
+            }
+        }
+        return null
+    }
+
+    private fun handleAuthenticatedClient(clientIp: String, reader: BufferedReader) {
+        while (true) {
+            try {
+                val receivedJson = reader.readLine()
+                if (receivedJson != null) {
+                    Log.e("SERVER", "Received a message from client $clientIp")
+                    val clientContent = Gson().fromJson(receivedJson, ContentModel::class.java)
+
+                    //store the msg in the database
+                    dbHelper.createChatMessage(clientIp, clientContent.message)
+
+                    iFaceImpl.onContent(clientContent)
+                }
+            } catch (e: Exception) {
+                Log.e("SERVER", "An error has occurred with the client $clientIp")
+                e.printStackTrace()
             }
         }
     }
@@ -72,7 +119,7 @@ class Server(private val iFaceImpl: NetworkMessageInterface, context: Context) {
                     val contentStr = Gson().toJson(content)
 
                     val clientIp = socket.inetAddress.hostAddress ?: "Unknown IP"
-
+                    
                     dbHelper.createChatMessage(clientIp, content.message)
 
                     writer.write("$contentStr\n")
@@ -101,6 +148,4 @@ class Server(private val iFaceImpl: NetworkMessageInterface, context: Context) {
             e.printStackTrace()
         }
     }
-
-
 }
