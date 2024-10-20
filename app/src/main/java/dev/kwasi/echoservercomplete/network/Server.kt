@@ -72,6 +72,7 @@ class Server(private val iFaceImpl: NetworkMessageInterface, context: Context) {
                     val contentStr = Gson().toJson(content)
 
                     val clientIp = socket.inetAddress.hostAddress ?: "Unknown IP"
+                    
                     dbHelper.createChatMessage(clientIp, content.message)
 
                     writer.write("$contentStr\n")

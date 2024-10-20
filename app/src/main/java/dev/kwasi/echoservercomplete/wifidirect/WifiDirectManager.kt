@@ -93,7 +93,6 @@ class WifiDirectManager(
     //req client server
     @SuppressLint("MissingPermission")
     fun connectToPeer(peer: WifiP2pDevice) {
-
         val config = WifiP2pConfig()
         config.deviceAddress = peer.deviceAddress
         manager.connect(channel, config, object : ActionListener {

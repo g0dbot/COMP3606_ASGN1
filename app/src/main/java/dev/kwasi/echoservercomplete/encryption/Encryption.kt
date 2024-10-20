@@ -16,6 +16,9 @@ class Encryption {
 
     private fun getFirstNChars(str: String, n: Int) = str.substring(0, n)
 
+    //get accepted ids
+    private val students: List<String> = listOf("816017853", "816123456")
+
     //gen strong seed
     private fun hashStrSha256(str: String): String{
         val algorithm = "SHA-256"
@@ -83,6 +86,14 @@ class Encryption {
 
         val decryptedResponse = decryptMessage(encryptedResponse, aesKey, aesIV)
         return decryptedResponse == randomNumber
+    }
+
+    fun authProcess(studentID: String) {
+        if (students.contains(studentID)) {
+            println("Student ID $studentID is authorized.")
+        } else {
+            println("Student ID $studentID is not authorized.")
+        }
     }
 
     //chall resp

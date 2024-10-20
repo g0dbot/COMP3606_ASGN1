@@ -16,6 +16,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.comp3606a1.encryption.Encryption
 import dev.kwasi.echoservercomplete.chatlist.ChatListAdapter
 import dev.kwasi.echoservercomplete.models.ContentModel
 import dev.kwasi.echoservercomplete.network.Client
@@ -38,6 +39,7 @@ class LandingStudent : AppCompatActivity(), WifiDirectInterface, PeerListAdapter
 
     private var peerListAdapter:PeerListAdapter? = null
     private var chatListAdapter:ChatListAdapter? = null
+    private var encryptionHelper:Encryption? = null
 
     private var wfdAdapterEnabled = false
     private var wfdHasConnection = false
@@ -105,14 +107,6 @@ class LandingStudent : AppCompatActivity(), WifiDirectInterface, PeerListAdapter
     //updates UI based on the state of the WiFi direct connection and devices
     //req client server
     private fun updateUI(){
-        //The rules for updating the UI are as follows:
-        // IF the WFD adapter is NOT enabled then
-        //      Show UI that says turn on the wifi adapter
-        // ELSE IF there is NO WFD connection then i need to show a view that allows the user to either
-        // 1) create a group with them as the group owner OR
-        // 2) discover nearby groups
-        // ELSE IF there are nearby groups found, i need to show them in a list
-        // ELSE IF i have a WFD connection i need to show a chat interface where i can send/receive messages
         val wfdAdapterErrorView:ConstraintLayout = findViewById(R.id.clWfdAdapterDisabled)
         wfdAdapterErrorView.visibility = if (!wfdAdapterEnabled) View.VISIBLE else View.GONE
 
@@ -191,6 +185,12 @@ class LandingStudent : AppCompatActivity(), WifiDirectInterface, PeerListAdapter
         updateUI()
     }
 
+    private fun submitIdNumber(message: String) {
+        val content = ContentModel(message, deviceIp)
+        client?.sendMessage(content)
+        chatListAdapter?.addItemToEnd(content)
+    }
+
     //Notifies updates on device parameters
     //req client server
     override fun onDeviceStatusChanged(thisDevice: WifiP2pDevice) {
@@ -202,7 +202,10 @@ class LandingStudent : AppCompatActivity(), WifiDirectInterface, PeerListAdapter
     //req client server
     override fun onPeerClicked(peer: WifiP2pDevice) {
         wfdManager?.connectToPeer(peer)
+        val content = ContentModel("message", deviceIp)
+        client?.sendMessage(content)
     }
+
 
     //handles incoming content messages from server and updates the chat list.
     override fun onContent(content: ContentModel) {
