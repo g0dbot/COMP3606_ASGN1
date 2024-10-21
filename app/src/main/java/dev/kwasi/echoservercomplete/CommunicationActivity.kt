@@ -180,7 +180,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
         wfdHasConnection = group != null
 
         if (group == null) {
-            disconnectAndCleanup()
+            disconnectAndCleanup(findViewById(R.id.btnEndClass))
         } else {
             if (group.isGroupOwner && server == null) {
                 server = Server(this, this)
@@ -217,10 +217,10 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
 
     override fun onDestroy() {
         super.onDestroy()
-        disconnectAndCleanup()
+        disconnectAndCleanup(findViewById(R.id.btnEndClass))
     }
 
-    private fun disconnectAndCleanup() {
+    fun disconnectAndCleanup(view: View) {
         wfdManager?.disconnect()
         server?.close()
         client?.close()
@@ -236,7 +236,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
     }
 
     fun refreshConnection(view: View) {
-        disconnectAndCleanup()
+        disconnectAndCleanup(findViewById(R.id.btnEndClass))
         wfdManager?.discoverPeers()
     }
 }
