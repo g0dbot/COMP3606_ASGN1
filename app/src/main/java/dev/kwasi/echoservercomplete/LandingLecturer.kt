@@ -16,11 +16,7 @@ import dev.kwasi.echoservercomplete.wifidirect.WifiDirectInterface
 class LandingLecturer : AppCompatActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Render the activity_class.xml layout
         setContentView(R.layout.lecturer_landing)
-
-        // You can add any further initialization or logic here if needed
     }
 
     //redirects to class activity

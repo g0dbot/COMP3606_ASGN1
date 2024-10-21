@@ -217,8 +217,6 @@ class LandingStudent : AppCompatActivity(), WifiDirectInterface, PeerListAdapter
         updateUI()
     }
 
-
-    //Notifies updates on device parameters
     //req client server
     override fun onDeviceStatusChanged(thisDevice: WifiP2pDevice) {
         val toast = Toast.makeText(this, "Device parameters have been updated" , Toast.LENGTH_SHORT)

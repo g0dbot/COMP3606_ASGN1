@@ -144,7 +144,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Attendance label -->
     <TextView
         android:id="@+id/tvAttendanceLabel"
         android:layout_width="wrap_content"
@@ -157,7 +156,6 @@
         app:layout_constraintStart_toStartOf="parent"
         tools:ignore="HardcodedText" />
 
-    <!-- TextView for "No devices connected" message -->
     <TextView
         android:id="@+id/tvNoDevices"
         android:layout_width="wrap_content"
@@ -169,7 +167,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- RecyclerView for displaying connected devices -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewConnectedDevices"
         android:layout_width="match_parent"
@@ -179,7 +176,6 @@
         app:layout_constraintBottom_toTopOf="@id/tvChatLabel"
         app:layout_constraintHeight_max="200dp"/>
 
-    <!-- TextView for "Chat" label -->
     <TextView
         android:id="@+id/tvChatLabel"
         android:layout_width="wrap_content"
@@ -191,7 +187,6 @@
         app:layout_constraintTop_toBottomOf="@id/recyclerViewConnectedDevices"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- RecyclerView for chat messages -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvChat"
         android:layout_width="match_parent"

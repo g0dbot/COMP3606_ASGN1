@@ -69,7 +69,7 @@ class Server(private val iFaceImpl: NetworkMessageInterface, context: Context) {
                             val clientContent = Gson().fromJson(receivedJson, ContentModel::class.java)
 
                             if (clientContent.message == "I am here") {
-                                // Start challenge-response protocol
+                                //go
                                 val randomR = encryption.genRandomNum().toString()
                                 randomMap[ipAddress] = randomR // Store the randomR associated with client IP
                                 val challengeMessage = ContentModel("R:$randomR", ipAddress)
@@ -77,10 +77,10 @@ class Server(private val iFaceImpl: NetworkMessageInterface, context: Context) {
                                 sendMessage(challengeMessage)
                             } else if (clientContent.message.startsWith("EncryptedR:")) {
                                 val encryptedResponse = clientContent.message.removePrefix("EncryptedR:")
-                                val randomR = randomMap[ipAddress] // Retrieve the stored randomR
+                                val randomR = randomMap[ipAddress]
 
                                 if (randomR != null) {
-                                    val studentId = clientContent.senderIp // Assume IP for now
+                                    val studentId = clientContent.senderIp
 
                                     // Verify student's response
                                     val success = encryption.verifyResponse(encryptedResponse, randomR, studentId)

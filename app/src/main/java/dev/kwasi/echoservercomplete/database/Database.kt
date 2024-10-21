@@ -9,8 +9,8 @@ import android.database.sqlite.SQLiteOpenHelper
 
 class Database(context: Context, factory: SQLiteDatabase.CursorFactory?) : SQLiteOpenHelper(context, DB_NAME, factory, DB_VERSION) {
     companion object {
-        private const val DB_NAME = "ChatDatabase.db" // Name of your database
-        private const val DB_VERSION = 1 // Initial version of your database
+        private const val DB_NAME = "ChatDatabase.db"
+        private const val DB_VERSION = 1
     }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -26,12 +26,9 @@ class Database(context: Context, factory: SQLiteDatabase.CursorFactory?) : SQLit
         db.execSQL(createChatMessageTableQuery)
     }
 
-    // Handle database upgrades
-    override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-        // Handle upgrade logic here
-    }
+    
+    override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {}
 
-    // Insert a new chat message
     fun createChatMessage(deviceName: String, text: String) {
         val now = System.currentTimeMillis()
         val values = ContentValues().apply {
@@ -45,7 +42,6 @@ class Database(context: Context, factory: SQLiteDatabase.CursorFactory?) : SQLit
         db.close()
     }
 
-    // Retrieve all messages for a specific device name
     fun getMessagesForDevice(deviceName: String): List<ChatMessage> {
         val result: MutableList<ChatMessage> = mutableListOf()
         val db = this.readableDatabase
@@ -73,5 +69,4 @@ class Database(context: Context, factory: SQLiteDatabase.CursorFactory?) : SQLit
 
 }
 
-// Data class for chat messages
 data class ChatMessage(val messageId: Int, val deviceName: String, val text: String, val timestamp: Long)

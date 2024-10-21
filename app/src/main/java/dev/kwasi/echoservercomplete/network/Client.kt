@@ -27,21 +27,19 @@ class Client(private val networkMessageInterface: NetworkMessageInterface) {
                 writer = clientSocket.outputStream.bufferedWriter()
                 ip = clientSocket.inetAddress.hostAddress!!
 
-                // Send initial "I am here" message
                 sendMessage(ContentModel("I am here", ip))
 
-                // Continuously listen for server responses
                 while (true) {
                     val serverResponse = reader.readLine()
                     if (serverResponse != null) {
                         val serverContent = Gson().fromJson(serverResponse, ContentModel::class.java)
 
-                        // If the response is a challenge (R), encrypt and send it back
+                        //response is challenge, encrypt and send back
                         if (serverContent.message.startsWith("R:")) {
                             val randomR = serverContent.message.removePrefix("R:")
                             val encryptedR = encryption.studentResponse(randomR, studentId)
 
-                            // Send the encrypted R to the server
+                            //R encr to ser
                             sendMessage(ContentModel("EncryptedR:$encryptedR", ip))
                         }
 
