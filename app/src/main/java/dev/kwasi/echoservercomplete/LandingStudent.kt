@@ -29,6 +29,7 @@ import dev.kwasi.echoservercomplete.peerlist.PeerListAdapter
 import dev.kwasi.echoservercomplete.peerlist.PeerListAdapterInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectManager
+import android.widget.TextView
 
 class LandingStudent : AppCompatActivity(), WifiDirectInterface, PeerListAdapterInterface, NetworkMessageInterface {
     private var wfdManager: WifiDirectManager? = null
@@ -191,16 +192,21 @@ class LandingStudent : AppCompatActivity(), WifiDirectInterface, PeerListAdapter
             "Group has been formed"
         }
         val toast = Toast.makeText(this, text , Toast.LENGTH_SHORT)
+        val textView: TextView = findViewById(R.id.tvGroupName)
+
         toast.show()
         wfdHasConnection = groupInfo != null
 
         if (groupInfo == null){
             disconnectAndCleanup()
         } else if (groupInfo.isGroupOwner && server == null){
+            textView.visibility = View.VISIBLE
+            textView.text = "Currently attending: ${groupInfo.networkName}"
             server = Server(this, this)
             deviceIp = "192.168.49.1"
         } else if (!groupInfo.isGroupOwner && client == null) {
-
+            textView.text = "Currently Attending: ${groupInfo.owner.deviceName}"
+            textView.visibility = View.VISIBLE
             client = Client(this)
             deviceIp = client!!.ip
         }
