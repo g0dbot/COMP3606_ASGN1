@@ -36,6 +36,18 @@
         app:layout_constraintStart_toStartOf="parent"
         tools:ignore="HardcodedText" />
 
+    <!-- End Class Button -->
+    <Button
+        android:id="@+id/btnEndClass"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="disconnectAndCleanup"
+        android:text="End Class"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintTop_toBottomOf="@id/tvTeacherLabel"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <!-- Attendance label -->
     <TextView
         android:id="@+id/tvAttendanceLabel"
@@ -47,7 +59,7 @@
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvTeacherLabel"
+        app:layout_constraintTop_toBottomOf="@id/btnEndClass"
         tools:ignore="HardcodedText" />
 
     <!-- TextView for "No devices connected" message -->
@@ -62,17 +74,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <Button
-        android:id="@+id/btnEndClass"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="disconnectAndCleanup"
-        android:text="End Class"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        app:layout_constraintTop_toBottomOf="@id/tvAttendanceLabel"
-        app:layout_constraintEnd_toEndOf="parent" />
-
     <!-- RecyclerView for displaying connected devices -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewConnectedDevices"
@@ -80,17 +81,34 @@
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
         app:layout_constraintTop_toBottomOf="@id/tvNoDevices"
-        app:layout_constraintBottom_toTopOf="@id/rvChat"
+        app:layout_constraintBottom_toTopOf="@id/tvChatLabel"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:maxHeight="200dp"/> <!-- Added max height -->
+
+    <!-- TextView for "Chat" label -->
+    <TextView
+        android:id="@+id/tvChatLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Chat"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/recyclerViewConnectedDevices"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="16dp" />
 
     <!-- RecyclerView for chat messages -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvChat"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/recyclerViewConnectedDevices"
-        app:layout_constraintBottom_toTopOf="@id/llChatSend" />
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/tvChatLabel"
+        app:layout_constraintBottom_toTopOf="@id/llChatSend"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:maxHeight="200dp" /> <!-- Added max height -->
 
     <LinearLayout
         android:id="@+id/llChatSend"
@@ -117,4 +135,5 @@
             android:text="Send"
             android:onClick="sendMessage" />
     </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
