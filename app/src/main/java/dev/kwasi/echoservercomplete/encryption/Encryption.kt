@@ -11,32 +11,26 @@ import kotlin.random.Random
 
 @OptIn(kotlin.io.encoding.ExperimentalEncodingApi::class)
 class Encryption {
-    //helper functions
     private fun ByteArray.toHex() = joinToString(separator = "") { byte -> "%02x".format(byte)}
 
     private fun getFirstNChars(str: String, n: Int) = str.substring(0, n)
-
-    //gen strong seed
     private fun hashStrSha256(str: String): String{
         val algorithm = "SHA-256"
         val hashedString = MessageDigest.getInstance(algorithm).digest(str.toByteArray(UTF_8))
         return hashedString.toHex()
     }
 
-    //gen AES Key
     private fun generateAESKey(seed: String): SecretKeySpec {
         val first32Chars = getFirstNChars(seed, 32)
         val secretKey = SecretKeySpec(first32Chars.toByteArray(), "AES")
         return secretKey
     }
 
-    //gen AES IV
     private fun generateIV(seed: String): IvParameterSpec {
         val first16Chars = getFirstNChars(seed, 16)
         return IvParameterSpec(first16Chars.toByteArray())
     }
 
-    //encrypt data
     private fun encryptMessage(plaintext: String, aesKey: SecretKey, aesIv: IvParameterSpec): String {
         val plainTextByteArr = plaintext.toByteArray()
 
@@ -47,7 +41,6 @@ class Encryption {
         return Base64.Default.encode(encrypt)
     }
 
-    //decrypt data
     private fun decryptMessage(encryptedText: String, aesKey:SecretKey, aesIV: IvParameterSpec): String{
         val textToDecrypt = Base64.Default.decode(encryptedText)
 
@@ -60,13 +53,10 @@ class Encryption {
         return String(decrypt)
     }
 
-    //challenge resp protocol
-    //gen rand num
     private fun genRandomNum(): Int {
         return Random.nextInt()
     }
 
-    //student encrptyion proto
     fun studentResponse(randomNumber: String, studentID: String): String {
         val studentIDHash = hashStrSha256(studentID)
         val aesKey = generateAESKey(studentIDHash)
@@ -75,7 +65,6 @@ class Encryption {
         return encryptMessage(randomNumber, aesKey, aesIV)
     }
 
-    //for lecturer to verify student
     fun verifyResponse(encryptedResponse: String, randomNumber: String, studentID: String): Boolean {
         val studentIDHash = hashStrSha256(studentID)
         val aesKey = generateAESKey(studentIDHash)
@@ -85,13 +74,9 @@ class Encryption {
         return decryptedResponse == randomNumber
     }
 
-    //chall resp
     fun authenticateStudent(studentID: String): Boolean {
-        // Lecturer sends a random number to the student
         val randomNumber = genRandomNum().toString()
-        // Student encrypts the random number with their StudentID
         val encryptedResponse = studentResponse(randomNumber, studentID)
-        // Lecturer verifies the student's response
         return verifyResponse(encryptedResponse, randomNumber, studentID)
     }
 }

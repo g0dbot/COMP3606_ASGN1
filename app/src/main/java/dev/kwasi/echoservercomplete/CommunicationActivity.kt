@@ -64,8 +64,6 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     private lateinit var encryption: Encryption
     private var isAuthenticated = false
 
-    //inits activity, sets up the UI, and prepares the WifiDirectManager and adapters for peer and chat lists
-    //req client server
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -117,12 +115,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             }
         }
 
-        // Initially update UI
         updateUI()
     }
 
-    //registers WifiDirectManager receiver when activity resumes.
-    //req client server
     override fun onResume() {
         super.onResume()
         wfdManager?.also {
@@ -130,8 +125,6 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         }
     }
 
-    //unregisters WifiDirectManager receiver when activity pauses.
-    //req client server
     override fun onPause() {
         super.onPause()
         wfdManager?.also {
@@ -139,19 +132,14 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         }
     }
 
-    //inits creation of a WiFi direct group
-    //req server
     fun createGroup(view: View) {
         wfdManager?.createGroup()
     }
 
-    //starts discovering nearby WiFi direct devices
     fun discoverNearbyPeers(view: View) {
         wfdManager?.discoverPeers()
     }
 
-    //updates UI based on the state of the WiFi direct connection and devices
-    //req client server
     private fun updateUI() {
         val wfdAdapterErrorView: ConstraintLayout = findViewById(R.id.clWfdAdapterDisabled)
         val wfdNoConnectionView: ConstraintLayout = findViewById(R.id.clNoWifiDirectConnection)
@@ -167,12 +155,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             tvClassName.text = "Class: ${wfdManager?.groupInfo?.networkName ?: "Unknown"}"
         }
 
-        // Disable search button if student ID is not valid
         btnSearchClasses.isEnabled = isValidStudentId(etStudentId.text.toString())
     }
 
-    //sends message to the connected client
-    //req client server
     fun sendMessage(view: View) {
         if (!isAuthenticated) {
             Toast.makeText(this, "Please authenticate first", Toast.LENGTH_SHORT).show()
@@ -210,8 +195,6 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         }
     }
 
-    //handles changes in WiFi direct state and updates UI accordingly
-    //req client server
     override fun onWiFiDirectStateChanged(isEnabled: Boolean) {
         wfdAdapterEnabled = isEnabled
         var text = if (isEnabled) {
@@ -224,8 +207,6 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         updateUI()
     }
 
-    //updates the list of nearby devices and UI upon peer list change
-    //req client server
     override fun onPeerListUpdated(deviceList: Collection<WifiP2pDevice>) {
         val toast = Toast.makeText(this, "Updated listing of nearby WiFi Direct devices", Toast.LENGTH_SHORT)
         toast.show()
@@ -326,7 +307,6 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     }
 
     override fun onGroupClicked(group: WifiP2pGroup) {
-        // Implement logic to join the selected group
         wfdManager?.joinGroup(group)
     }
 

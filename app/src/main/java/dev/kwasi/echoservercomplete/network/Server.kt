@@ -9,8 +9,6 @@ import java.net.Socket
 import kotlin.Exception
 import kotlin.concurrent.thread
 
-/// The [Server] class has all the functionality that is responsible for the 'server' connection.
-/// This is implemented using TCP. This Server class is intended to be run on the GO.
 
 class Server(private val iFaceImpl:NetworkMessageInterface) {
     companion object {

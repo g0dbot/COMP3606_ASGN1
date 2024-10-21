@@ -15,9 +15,6 @@ import android.net.wifi.p2p.WifiP2pManager.P2pStateListener
 import android.os.Build
 import android.util.Log
 
-/// This [WifiDirectManager] class is a [BroadcastReceiver] that listens for events fired from the
-/// operating system and relays the relevant information using the [WiFiDirectInterface] to the
-/// [CommunicationActivity]
 class WifiDirectManager(
     private val manager: WifiP2pManager,
     private val channel: WifiP2pManager.Channel,
@@ -56,7 +53,6 @@ class WifiDirectManager(
                     Log.e("WFDManager","The group status has changed")
                     iFaceImpl.onGroupStatusChanged(groupInfo)
                     
-                    // Request group info to get the list of clients in the group
                     manager.requestGroupInfo(channel) { group ->
                         iFaceImpl.onGroupInfoUpdated(group)
                     }
@@ -76,8 +72,6 @@ class WifiDirectManager(
         }
     }
 
-    //creates WiFi direct group with the local device as the group owner
-    //req erver
     @SuppressLint("MissingPermission")
     fun createGroup(){
         manager.createGroup(channel, object : ActionListener {
@@ -92,8 +86,6 @@ class WifiDirectManager(
         })
     }
 
-    //connects to selected peer device using its address.
-    //req client server
     @SuppressLint("MissingPermission")
     fun connectToPeer(peer: WifiP2pDevice) {
         val config = WifiP2pConfig()
@@ -111,8 +103,6 @@ class WifiDirectManager(
         })
     }
 
-    //inits discovery of nearby device
-    //req client server
     @SuppressLint("MissingPermission")
     fun discoverPeers(){
         manager.discoverPeers(channel, object : ActionListener {
@@ -126,7 +116,6 @@ class WifiDirectManager(
         })
     }
 
-    //disconnects from the current group.
     fun disconnect(){
         manager.removeGroup(channel, object : ActionListener {
             override fun onSuccess() {
@@ -156,7 +145,7 @@ class WifiDirectManager(
     fun joinGroup(group: WifiP2pGroup) {
         val config = WifiP2pConfig()
         config.deviceAddress = group.owner.deviceAddress
-        config.groupOwnerIntent = 0 // Set to 0 to prefer being a client
+        config.groupOwnerIntent = 0 
 
         manager.connect(channel, config, object : ActionListener {
             override fun onSuccess() {
