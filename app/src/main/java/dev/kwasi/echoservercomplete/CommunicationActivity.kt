@@ -24,6 +24,7 @@ import androidx.recyclerview.widget.RecyclerView
 import dev.kwasi.echoservercomplete.chatlist.ChatListAdapter
 import dev.kwasi.echoservercomplete.connected.ConnectedDevicesAdapter
 import dev.kwasi.echoservercomplete.connected.ConnectedDevicesAdapterInterface
+import dev.kwasi.echoservercomplete.database.ChatMessage
 import dev.kwasi.echoservercomplete.models.ContentModel
 import dev.kwasi.echoservercomplete.network.Client
 import dev.kwasi.echoservercomplete.network.NetworkMessageInterface
@@ -38,8 +39,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
     private var wfdManager: WifiDirectManager? = null
     private var connectedDevicesAdapter: ConnectedDevicesAdapter? = null
     private var chatListAdapter: ChatListAdapter? = null
-    private var peerListAdapter: PeerListAdapter? = null
     private var dbHelper: Database? = null
+    private lateinit var tvTitle: TextView
+    private lateinit var tvChat: TextView
 
     private val intentFilter = IntentFilter().apply {
         addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION)
@@ -54,14 +56,11 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
     private var server: Server? = null
     private var client: Client? = null
     private var deviceIp: String = ""
-
-    private var groupInfo: WifiP2pGroup? = null // Add this variable to store group information
+    private var groupInfo: WifiP2pGroup? = null
 
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("CommunicationActivity", "onCreate: Starting activity")
-
         enableEdgeToEdge()
         setContentView(R.layout.activity_communication_lecturer)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -70,25 +69,26 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
             insets
         }
 
-        Log.d("CommunicationActivity", "onCreate: Initializing WifiDirectManager")
         val manager: WifiP2pManager = getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
         val channel = manager.initialize(this, mainLooper, null)
-        val dbHelper = Database(this, null)
-
+        dbHelper = Database(this, null)
         wfdManager = WifiDirectManager(manager, channel, this)
-
-        Log.d("CommunicationActivity", "onCreate: Creating group")
         wfdManager?.createGroup()
 
+        tvTitle = findViewById(R.id.tvTitle)
+        tvChat = findViewById(R.id.tvChatLabel)
+
         connectedDevicesAdapter = ConnectedDevicesAdapter(this)
-        val rvConnectedDevicesList: RecyclerView = findViewById(R.id.recyclerViewConnectedDevices)
-        rvConnectedDevicesList.adapter = connectedDevicesAdapter
-        rvConnectedDevicesList.layoutManager = LinearLayoutManager(this)
+        findViewById<RecyclerView>(R.id.recyclerViewConnectedDevices).apply {
+            adapter = connectedDevicesAdapter
+            layoutManager = LinearLayoutManager(this@CommunicationActivity)
+        }
 
         chatListAdapter = ChatListAdapter()
-        val rvChatList: RecyclerView = findViewById(R.id.rvChat)
-        rvChatList.adapter = chatListAdapter
-        rvChatList.layoutManager = LinearLayoutManager(this)
+        findViewById<RecyclerView>(R.id.rvChat).apply {
+            adapter = chatListAdapter
+            layoutManager = LinearLayoutManager(this@CommunicationActivity)
+        }
     }
 
     override fun onResume() {
@@ -102,7 +102,6 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
     }
 
     fun createGroup(view: View) {
-        Log.d("CommunicationActivity", "createGroup called")
         wfdManager?.createGroup()
     }
 
@@ -121,8 +120,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
             return
         }
 
-        // Retrieve connected devices
-        val connectedDevices = getConnectedDevices() // Get the updated list of connected devices
+        val connectedDevices = getConnectedDevices()
 
         if (connectedDevices.isEmpty()) {
             tvNoDevices.text = "No devices connected."
@@ -131,12 +129,12 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
         } else {
             tvNoDevices.visibility = View.GONE
             rvConnectedDevicesList.visibility = View.VISIBLE
-            connectedDevicesAdapter?.updateConnectedDevices(connectedDevices) // Update adapter with the new list
+            connectedDevicesAdapter?.updateConnectedDevices(connectedDevices)
         }
     }
 
     private fun getConnectedDevices(): Collection<WifiP2pDevice> {
-        return groupInfo?.clientList ?: emptyList() // Return the list of connected devices
+        return groupInfo?.clientList ?: emptyList()
     }
 
     fun sendMessage(view: View) {
@@ -145,37 +143,25 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
         val content = ContentModel(messageContent, deviceIp)
         etMessage.text.clear()
 
-        if (server != null) {
-            server?.sendMessage(content)
-        } else {
-            client?.sendMessage(content)
-        }
+        server?.sendMessage(content) ?: client?.sendMessage(content)
         chatListAdapter?.addItemToEnd(content)
     }
 
     override fun onWiFiDirectStateChanged(isEnabled: Boolean) {
         wfdAdapterEnabled = isEnabled
-        val message = if (isEnabled) "WiFi Direct enabled!" else "WiFi Direct disabled! Turn on the WiFi adapter."
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, if (isEnabled) "WiFi Direct enabled!" else "WiFi Direct disabled! Turn on the WiFi adapter.", Toast.LENGTH_SHORT).show()
         updateUI()
     }
 
     override fun onPeerListUpdated(deviceList: Collection<WifiP2pDevice>) {
-        val toast = Toast.makeText(this, "Updated listing of nearby WiFi Direct devices", Toast.LENGTH_SHORT)
-        toast.show()
+        Toast.makeText(this, "Updated listing of nearby WiFi Direct devices", Toast.LENGTH_SHORT).show()
         hasDevices = deviceList.isNotEmpty()
-        peerListAdapter?.updateList(deviceList)
         updateUI()
     }
 
     override fun onGroupStatusChanged(group: WifiP2pGroup?) {
-        groupInfo = group // Update groupInfo when the group status changes
-        val message = if (group == null) {
-            "Group is not formed"
-        } else {
-            "Group has been formed"
-        }
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        groupInfo = group
+        Toast.makeText(this, if (group == null) "Group is not formed" else "Group has been formed", Toast.LENGTH_SHORT).show()
 
         wfdHasConnection = group != null
 
@@ -185,12 +171,12 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
             if (group.isGroupOwner && server == null) {
                 server = Server(this, this)
                 deviceIp = "192.168.49.1"
+                tvTitle.text = "Class Network: ${group.networkName}"
             } else if (!group.isGroupOwner && client == null) {
                 client = Client(this)
                 deviceIp = client!!.ip
             }
-
-            connectedDevicesAdapter?.updateConnectedDevices(group.clientList) // Update adapter with the group client list
+            connectedDevicesAdapter?.updateConnectedDevices(group.clientList)
         }
         updateUI()
     }
@@ -202,11 +188,11 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
     override fun onConnDeviceClick(peer: WifiP2pDevice) {
         Toast.makeText(this, "Connecting to: ${peer.deviceName}", Toast.LENGTH_SHORT).show()
         wfdManager?.connectToPeer(peer)
-        val intent = Intent(this, ChatListAdapter::class.java).apply {
-            putExtra("DEVICE_NAME", peer.deviceName)
-            putExtra("DEVICE_IP", deviceIp) // Adjust as necessary to get the correct IP
-        }
-        startActivity(intent)
+
+        tvChat.text = "Student Chat - ${peer.deviceName}"
+        val chatMessages: MutableList<ChatMessage> = dbHelper?.getMessagesForDevice(peer.deviceName)?.toMutableList() ?: mutableListOf()
+        val contentModels: List<ContentModel> = chatMessages.map { ContentModel(it.deviceName, it.text) }
+        chatListAdapter?.loadMessagesFromDb(contentModels)
     }
 
     override fun onContent(content: ContentModel) {
@@ -228,8 +214,6 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
         client = null
         wfdHasConnection = false
         updateUI()
-
-        // Navigate back to the landing page
         startActivity(Intent(this, LandingLecturer::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
         })
